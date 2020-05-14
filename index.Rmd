@@ -1,5 +1,5 @@
 ---
-title: "SNMPTN 2020"
+title: "SBMPTN 2020"
 author: "Subbagian Registrasi"
 output: 
   flexdashboard::flex_dashboard:
@@ -16,7 +16,7 @@ Sys.setlocale("LC_TIME", "IND")
 #library(readxl)
 #db <- read.csv("https://github.com/registrasi-untirta/snmptn/raw/master/snmptn.csv")
 
-db <- read.csv("snmptn.csv")
+db <- read.csv("sbmptn.csv")
 
 library(tidyverse)
 
@@ -49,7 +49,7 @@ valueBox(
 
 valueBox(
   value = paste(format(nrow(db), big.mark = " "), "", sep = " "),
-  caption = "Lulus SNMPTN",
+  caption = "Lulus SBMPTN",
   icon = "fas fa-clipboard-check",
   color = "purple"
 )
@@ -314,7 +314,7 @@ kable(data, row.names = F) %>%
 Camaba Registrasi
 ===
 
-### Berikut adalah daftar nama calon mahasiswa baru Universitas Sultan Ageng Tirtayasa yang melakukan registrasi di admisi.untirta.ac.id  (**gunakan Search untuk pencarian cepat**)
+### Berikut adalah daftar nama calon mahasiswa baru Universitas Sultan Ageng Tirtayasa jalur SBMPTN 2020 yang melakukan registrasi di admisi.untirta.ac.id sampai dengan `r format(Sys.time(), "%d %B %Y")` pukul `r format(Sys.time(), "%H:%M")`. (**gunakan Search untuk pencarian cepat**)
 
 ```{r}
 # `r format(Sys.time(), "%d %B %Y")` pukul `r format(Sys.time(), "%X")`
@@ -331,7 +331,7 @@ DT::datatable(data,
 Mahasiswa Baru
 ===
 
-### Berikut adalah daftar nama mahasiswa baru Universitas Sultan Ageng Tirtayasa jalur SNMPTN 2020 sampai dengan `r format(Sys.time(), "%d %B %Y")` pukul `r format(Sys.time(), "%H:%M")`. (**gunakan Search untuk pencarian cepat**)
+### Berikut adalah daftar nama mahasiswa baru Universitas Sultan Ageng Tirtayasa jalur SBMPTN 2020 sampai dengan `r format(Sys.time(), "%d %B %Y")` pukul `r format(Sys.time(), "%H:%M")`. (**gunakan Search untuk pencarian cepat**)
 
 ```{r}
 # `r format(Sys.time(), "%d %B %Y")` pukul `r format(Sys.time(), "%X")`
