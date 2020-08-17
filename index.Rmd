@@ -16,13 +16,16 @@ Sys.setlocale("LC_TIME", "IND")
 #library(readxl)
 #db <- read.csv("https://github.com/registrasi-untirta/snmptn/raw/master/snmptn.csv")
 
-db <- read.csv("sbmptn.csv")
+#db <- read.csv("sbmptn.csv")
 
 library(tidyverse)
+library(readxl)
 
-data <- db %>%
-  group_by(prodi) %>%
-  summarize(minat = max(peminat))
+db <- read_excel("sbmptn.xlsx", sheet = "Sheet1")
+
+#data <- db %>%
+#  group_by(id_prodi) %>%
+#  summarize(minat = n())
 ```
 
 Ringkasan
@@ -36,7 +39,8 @@ Row
 ```{r}
 
 valueBox(
-  value = paste(format(sum(data$minat), big.mark = " "), "", sep = " "),
+  #value = paste(format(nrow(db), big.mark = " "), "", sep = " "),
+  value = "",
   caption = "Pendaftar di Untirta",
   icon = "fas fa-clipboard-check",
   color = "black"
@@ -87,7 +91,7 @@ valueBox(
 ### kip {.value-box}
 
 ```{r}
-data <- filter(db, beasiswa == "KIP")
+data <- filter(db, KIP == "KIP")
 valueBox(
   value = paste(format(nrow(data), big.mark = " "), " (", 
                 round(nrow(data)/nrow(db)*100, 0), "%)",
@@ -161,11 +165,42 @@ kable(data) %>%
 
 ```
 
+
+Row
+---
+
+### **Camaba berdasarkan kategori sekolah asal**
+
+```{r}
+data <- db %>%
+  group_by(kategori_sekolah) %>%
+  summarize(banyak = n())
+
+div(plot_ly(type = "pie", labels = data$kategori_sekolah, values = data$banyak,
+        textinfo = "label+percent",
+        insidetextorientation = "radial"), align = "center")
+```
+
+### **Camaba berdasarkan jenis sekolah asal**
+
+```{r}
+data <- db %>%
+  group_by(jenis_sekolah) %>%
+  summarize(banyak = n())
+
+div(plot_ly(type = "pie", labels = data$jenis_sekolah, values = data$banyak,
+        textinfo = "label+percent",
+        insidetextorientation = "radial"), align = "center")
+```
+
+Row
+---
+
 ### **Camaba berdasarkan Provinsi asal**
 
 ```{r}
 data <- db %>%
-  group_by(provinsi, jk) %>%
+  group_by(prop_sekolah, jk) %>%
   summarize(tot = n())
 data <- data %>%
   pivot_wider(names_from = jk, values_from = tot)
@@ -180,45 +215,17 @@ kable(data) %>%
   add_header_above(c(" " = 1, "Jenis Kelamin" = 2, " " = 1))
 ```
 
-
-Row
----
-
-### **Camaba berdasarkan kategori sekolah asal**
-
-```{r}
-data <- db %>%
-  group_by(negeri) %>%
-  summarize(banyak = n())
-
-div(plot_ly(type = "pie", labels = data$negeri, values = data$banyak,
-        textinfo = "label+percent",
-        insidetextorientation = "radial"), align = "center")
-```
-
-### **Camaba berdasarkan jenis sekolah asal**
-
-```{r}
-data <- db %>%
-  group_by(jns_sklh) %>%
-  summarize(banyak = n())
-
-div(plot_ly(type = "pie", labels = data$jns_sklh, values = data$banyak,
-        textinfo = "label+percent",
-        insidetextorientation = "radial"), align = "center")
-```
-
 ### **Camaba berdasarkan pendidikan orang tua**
 
 ```{r}
 data <- db %>%
-  group_by(pend_ortu, jk) %>%
+  group_by(pend, jk) %>%
   summarize(tot = n())
 data <- data %>%
   pivot_wider(names_from = jk, values_from = tot)
 data[is.na(data)] <- 0
 names(data) <- c("Pendidikan", "Laki-Laki", "Perempuan")
-data$Pendidikan <- c("SD", "SLTP", "SLTA", "D3", "S1", "S2", "S3", "Tidak ada")
+data$Pendidikan <- c("Tidak Ada Data", "Tidak Sekolah", "Tidak Tamat SD", "SD", "SLTP", "SLTA", "D1", "D2", "D3", "D4", "S1", "S2", "S3")
 data <- adorn_totals(data, where = c("col", "row"), name = "JML")
 
 kable(data) %>%
@@ -227,120 +234,3 @@ kable(data) %>%
   add_header_above(c(" " = 1, "Jenis Kelamin" = 2, " " = 1))
 ```
 
-Progres Registrasi
-===
-
-row
----
-
-### **Progres registrasi di setiap fakultas**
-
-```{r}
-data <- db %>%
-  group_by(fakultas, prodi) %>%
-  summarize(pendaftar = max(peminat),
-            lulus = n(),
-            sudah = sum(registrasi == "registrasi"),
-            belum = lulus - sudah,
-            diterima = sum(nim == "diterima"))
-
-data <- data %>%
-  group_by(fakultas) %>%
-  summarize(pendaftar = sum(pendaftar),
-            lulus = sum(lulus),
-            sudah = sum(sudah),
-            belum = sum(belum),
-            diterima = sum(diterima))
-
-data$fakultas <- c("Hukum", "FKIP", "Teknik", "Pertanian",
-                   "FEB", "FISIP", "Kedokteran")
-data$fakultas  <- factor(data$fakultas, levels = data[["fakultas"]])
-
-plot_ly(data, x = ~fakultas, y = ~lulus, type = "bar", name = "Total") %>%
-  add_trace(y = ~sudah, name = "registrasi") %>%
-  add_trace(y = ~diterima, name = "diterima") %>%
-  layout(
-    title = "",
-    yaxis = list(title = ""),
-    xaxis = list(title = "Fakultas"),
-    hovermode = "compare"
-  )
-```
-
-### **Progres registrasi di setiap fakultas**
-
-```{r}
-names(data) <- c("Fakultas", "Pendaftar", "Lulus", "Ya", "Tidak", "Diterima")
-data <- adorn_totals(data, where = "row", name = "Total")
-kable(data) %>%
-  kable_styling(bootstrap_options = "striped", full_width = F,
-                latex_options = "scale_down") %>%
-  add_header_above(c(" " = 3, "Registrasi" = 2, " " = 1))
-
-```
-
-row
----
-
-### Progres registrasi di setiap Program Studi
-
-```{r}
-data <- db %>%
-  group_by(fakultas, prodi) %>%
-  summarize(pendaftar = max(peminat),
-            lulus = n(),
-            sudah = sum(registrasi == "registrasi"),
-            belum = lulus - sudah,
-            diterima = sum(nim == "diterima"))
-data <- data[, -1]
-names(data) <- c("Fakultas/Program Studi", "Pendaftar", "Lulus", "Ya", "Tidak", "Diterima")
-data <- adorn_totals(data,where = "row", name = "Total")
-
-kable(data, row.names = F) %>%
-  kable_styling(bootstrap_options = "striped", full_width = F,
-                latex_options = "scale_down") %>%
-  add_header_above(c(" " = 3, "Registrasi" = 2, " " = 1)) %>%
-  pack_rows("Hukum", 1, 1, label_row_css = "background-color: #666; color: #fff;") %>%
-  pack_rows("Keguruan dan Ilmu Pendidikan", 2, 19, label_row_css = "background-color: #666; color: #fff;") %>%
-  pack_rows("Teknik", 20, 25, label_row_css = "background-color: #666; color: #fff;") %>%
-  pack_rows("Pertanian", 26, 29, label_row_css = "background-color: #666; color: #fff;") %>%
-  pack_rows("Ekonomi dan Bisnis", 30, 33, label_row_css = "background-color: #666; color: #fff;") %>%
-  pack_rows("Ilmu Sosial dan Ilmu Politik", 34, 36, label_row_css = "background-color: #666; color: #fff;") %>%
-  pack_rows("Kedokteran", 37, 39, label_row_css = "background-color: #666; color: #fff;")
-
-
-```
-
-Camaba Registrasi
-===
-
-### Berikut adalah daftar nama calon mahasiswa baru Universitas Sultan Ageng Tirtayasa jalur SBMPTN 2020 yang melakukan registrasi di admisi.untirta.ac.id sampai dengan `r format(Sys.time(), "%d %B %Y")` pukul `r format(Sys.time(), "%H:%M")`. (**gunakan Search untuk pencarian cepat**)
-
-```{r}
-# `r format(Sys.time(), "%d %B %Y")` pukul `r format(Sys.time(), "%X")`
-# format waktu
-data <- db %>%
-  filter(registrasi == "registrasi") %>%
-  select(no_pend, nama, jk, prodi)
-names(data) <- c("No Pendaftaran", "Nama", "Jenis Kelamin", "Program Studi")
-DT::datatable(data,
-              rownames = F)#,
-              #filter = "top")
-```
-
-Mahasiswa Baru
-===
-
-### Berikut adalah daftar nama mahasiswa baru Universitas Sultan Ageng Tirtayasa jalur SBMPTN 2020 sampai dengan `r format(Sys.time(), "%d %B %Y")` pukul `r format(Sys.time(), "%H:%M")`. (**gunakan Search untuk pencarian cepat**)
-
-```{r}
-# `r format(Sys.time(), "%d %B %Y")` pukul `r format(Sys.time(), "%X")`
-# format waktu
-data <- db %>%
-  filter(nim == "diterima") %>%
-  select(no_pend, nama, jk, prodi)
-names(data) <- c("No Pendaftaran", "Nama", "Jenis Kelamin", "Program Studi")
-DT::datatable(data,
-              rownames = F)#,
-              #filter = "top")
-```
